@@ -39,7 +39,6 @@ Ensure you have the following installed on your local development machine:
     npm start
     ```
 
-#
 ## API Endpoints
 
 ### GET /

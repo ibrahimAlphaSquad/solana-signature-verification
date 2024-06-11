@@ -4,7 +4,6 @@ const cors = require("cors");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const { verifySignature } = require("./verifySignature");
-const generateToken = require("./generateToken");
 const verifyToken = require("./verifyToken");
 
 const app = express();
@@ -101,8 +100,8 @@ const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
-  console.log("Auth Header:", authHeader);  // Log the Authorization header
-  console.log("Token:", token);  // Log the token extracted from the header
+  console.log("Auth Header:", authHeader); // Log the Authorization header
+  console.log("Token:", token); // Log the token extracted from the header
 
   if (token == null) {
     console.log("No token provided");
@@ -111,11 +110,11 @@ const authenticateToken = (req, res, next) => {
 
   try {
     const user = verifyToken(token);
-    console.log("Token verified successfully:", user);  // Log the verified user information
+    console.log("Token verified successfully:", user); // Log the verified user information
     req.user = user;
     next();
   } catch (err) {
-    console.log("Token verification failed:", err.message);  // Log the error message
+    console.log("Token verification failed:", err.message); // Log the error message
     res.sendStatus(403);
   }
 };
@@ -140,7 +139,7 @@ app.post("/verify-signature", async (req, res, next) => {
   try {
     const result = await verifySignature(publicKey, signature);
     if (result.isValid) {
-      console.log("Generated Token:", result.token);  // Log the generated token
+      console.log("Generated Token:", result.token); // Log the generated token
     }
     res.send(result);
   } catch (err) {
