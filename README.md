@@ -24,16 +24,21 @@ Ensure you have the following installed on your local development machine:
 
     ```bash
     git clone https://github.com/your-username/solana-signature-verification.git
+    ```
+
+2. Get into the directory of the newly cloned repo
+
+    ```bash
     cd solana-signature-verification
     ```
 
-2. Install dependencies:
+3. Install dependencies:
 
     ```bash
     npm install
     ```
 
-3. Start the server:
+4. Start the server:
 
     ```bash
     npm start
