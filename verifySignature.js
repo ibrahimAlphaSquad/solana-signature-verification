@@ -2,8 +2,7 @@ const nacl = require("tweetnacl");
 const bs58 = require("bs58");
 const generateToken = require("./generateToken");
 
-const message =
-  "To avoid digital dognappers, sign below to authenticate with CryptoCorgis.";
+const message = "Welcome to apex";
 
 const verifySignature = async (publicKeyString, signatureString) => {
   try {
