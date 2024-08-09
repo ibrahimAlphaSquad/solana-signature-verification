@@ -198,30 +198,51 @@ function generateRandomLiquidityInfo() {
   return (Math.random() * 1e9).toExponential(1);
 }
 
+// /**
+//  * Generate a complete random data object for a new token release
+//  * @returns {object} - Random data object for the token release
+//  */
+// function generateRandomTokenData() {
+//   return {
+//     id: generateRandomId(),
+//     created_at: generateRandomTimestamp(),
+//     pool_created_at: generateRandomTimestamp(),
+//     fee_payer: generateRandomWalletAddress(),
+//     pool_creator: generateRandomWalletAddress(),
+//     liquidity_pool_address: generateRandomWalletAddress(),
+//     token_mint_one: generateRandomMintAddress(),
+//     token_mint_two: "So11111111111111111111111111111111111111112", // Typically SOL
+//     token_mint_one_amount: generateRandomTokenAmount(),
+//     sol_amount: generateRandomSolAmount(),
+//     token_mint_one_name: generateRandomTokenName(),
+//     token_mint_two_name: "Solana",
+//     token_mint_one_symbol: generateRandomTokenSymbol(),
+//     token_mint_two_symbol: "SOL",
+//     pool_burnt_percentage: generateRandomBurntPercentage(),
+//     liquidity_info: generateRandomLiquidityInfo(),
+//     lp_provider: "Raydium",
+//     uri: "https://arweave.net/o_JOBtY4n0bPm8-FL6Hq63IJ24T-QIk0-GbKy9YSPDU",
+//   };
+// }
+
 /**
  * Generate a complete random data object for a new token release
  * @returns {object} - Random data object for the token release
  */
 function generateRandomTokenData() {
   return {
-    id: generateRandomId(),
-    created_at: generateRandomTimestamp(),
-    pool_created_at: generateRandomTimestamp(),
-    fee_payer: generateRandomWalletAddress(),
-    pool_creator: generateRandomWalletAddress(),
-    liquidity_pool_address: generateRandomWalletAddress(),
-    token_mint_one: generateRandomMintAddress(),
-    token_mint_two: "So11111111111111111111111111111111111111112", // Typically SOL
-    token_mint_one_amount: generateRandomTokenAmount(),
-    sol_amount: generateRandomSolAmount(),
-    token_mint_one_name: generateRandomTokenName(),
-    token_mint_two_name: "Solana",
-    token_mint_one_symbol: generateRandomTokenSymbol(),
-    token_mint_two_symbol: "SOL",
-    pool_burnt_percentage: generateRandomBurntPercentage(),
-    liquidity_info: generateRandomLiquidityInfo(),
-    lp_provider: "Raydium",
-    uri: "https://arweave.net/o_JOBtY4n0bPm8-FL6Hq63IJ24T-QIk0-GbKy9YSPDU",
+    tokenAddress: generateRandomMintAddress(), // Previously token_mint_one
+    tokenPriceSol: parseFloat((Math.random() * 1e-5).toFixed(12)), // Random SOL price
+    symbol: generateRandomTokenSymbol(),
+    lpTokenAmount: generateRandomTokenAmount(), // Previously token_mint_one_amount
+    creator: generateRandomWalletAddress(), // Previously pool_creator
+    tokenPriceUsd: parseFloat((Math.random() * 0.001).toFixed(12)), // Random USD price
+    name: generateRandomTokenName(),
+    poolAddress: generateRandomWalletAddress(), // Previously liquidity_pool_address
+    lpSolAmount: generateRandomSolAmount(), // Previously sol_amount
+    openTime: Math.floor(Date.now() / 1000), // Epoch time in seconds
+    supply: 1000000000, // Fixed supply for the token
+    uri: "https://bafkreiexnj5beawk2qmqcavuekrbpvemhngytjcuerol5venjtrrsx4lh4.ipfs.w3s.link", // Placeholder URI
   };
 }
 

@@ -222,7 +222,7 @@ app.get("/get_verify_number", (req, res) => {
  *      500:
  *        description: Internal Server Error
  */
-app.get("/pools/subscribe", (req, res) => {
+app.get("/v1/events/subscribe", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache, no-transform");
   res.setHeader("Connection", "keep-alive");
