@@ -254,6 +254,89 @@ app.get("/v1/events/subscribe", (req, res) => {
   });
 });
 
+/**
+ * @swagger
+ * /pools/raydium/past/72:
+ *  get:
+ *    summary: Get past pool data for Raydium
+ *    tags:
+ *      - Pools
+ *    parameters:
+ *      - in: query
+ *        name: offset
+ *        schema:
+ *          type: integer
+ *        description: Offset for pagination
+ *        required: false
+ *        default: 0
+ *      - in: query
+ *        name: limit
+ *        schema:
+ *          type: integer
+ *        description: Limit for pagination
+ *        required: false
+ *        default: 20
+ *    responses:
+ *      200:
+ *        description: Array of random token data objects
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                type: object
+ *                properties:
+ *                  tokenAddress:
+ *                    type: string
+ *                  tokenPriceSol:
+ *                    type: number
+ *                  symbol:
+ *                    type: string
+ *                  lpTokenAmount:
+ *                    type: number
+ *                  creator:
+ *                    type: string
+ *                  tokenPriceUsd:
+ *                    type: number
+ *                  name:
+ *                    type: string
+ *                  poolAddress:
+ *                    type: string
+ *                  lpSolAmount:
+ *                    type: number
+ *                  openTime:
+ *                    type: integer
+ *                  supply:
+ *                    type: integer
+ *                  uri:
+ *                    type: string
+ *      400:
+ *        description: Bad Request
+ *      500:
+ *        description: Internal Server Error
+ */
+app.get("/v1/pools/raydium/past/72", (req, res) => {
+  const offset = parseInt(req.query.offset) || 0;
+  const limit = parseInt(req.query.limit) || 20;
+
+  if (offset < 0 || limit < 1) {
+    return res
+      .status(400)
+      .send({ message: "Invalid offset or limit parameters" });
+  }
+
+  try {
+    const randomData = [];
+    for (let i = 0; i < limit; i++) {
+      randomData.push(generateRandomTokenData());
+    }
+
+    res.status(200).send(randomData.slice(offset, offset + limit));
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   res.status(500).send("Something broke!");

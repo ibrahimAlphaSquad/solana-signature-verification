@@ -246,4 +246,21 @@ function generateRandomTokenData() {
   };
 }
 
-module.exports = { generateRandomTokenData, generateRandomId };
+/**
+ * Generate random data for /pools/raydium/past/72?offset=0&limit=20
+ * @param {number} count - Number of random token data objects to generate
+ * @returns {object[]} - Array of random token data objects
+ */
+function generateRandomDataForRaydiumPools(count = 20) {
+  const randomDataArray = [];
+  for (let i = 0; i < count; i++) {
+    randomDataArray.push(generateRandomTokenData());
+  }
+  return randomDataArray;
+}
+
+module.exports = {
+  generateRandomTokenData,
+  generateRandomId,
+  generateRandomDataForRaydiumPools,
+};
