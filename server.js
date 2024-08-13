@@ -9,6 +9,9 @@ const generateVerificationNumber = require("./verifyNumber");
 const {
   generateRandomTokenData,
   generateRandomId,
+  generateRandomHoldings,
+  generateRandomSolanaQuantity,
+  generateRandomPreferences,
 } = require("./randomDataGenerator");
 
 const app = express();
@@ -335,6 +338,117 @@ app.get("/v1/pools/raydium/past/72", (req, res) => {
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
+});
+
+/**
+ * @swagger
+ * /v1/holdings:
+ *  get:
+ *    summary: Get holdings data
+ *    tags:
+ *      - Holdings
+ *    responses:
+ *      200:
+ *        description: Array of holding objects
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                code:
+ *                  type: integer
+ *                holdings:
+ *                  type: array
+ *                  items:
+ *                    type: object
+ *                    properties:
+ *                      tokenMintAddress:
+ *                        type: string
+ *                      poolAddress:
+ *                        type: string
+ *                      tokenName:
+ *                        type: string
+ *                      tokenSymbol:
+ *                        type: string
+ *                      tokenQuantity:
+ *                        type: number
+ *                      uri:
+ *                        type: string
+ *                      createdAt:
+ *                        type: string
+ */
+app.get("/v1/holdings", (req, res) => {
+  const holdingsData = generateRandomHoldings(); // Generate the data
+  res.status(200).json(holdingsData);
+});
+
+/**
+ * @swagger
+ * /v1/wallet/sync:
+ *  get:
+ *    summary: Sync wallet data
+ *    tags:
+ *      - Wallet
+ *    responses:
+ *      200:
+ *        description: Wallet sync data
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                code:
+ *                  type: integer
+ *                solanaQuantity:
+ *                  type: number
+ */
+app.get("/v1/wallet/sync", (req, res) => {
+  const walletData = {
+    code: 0, // Success code
+    solanaQuantity: generateRandomSolanaQuantity(), // Random SOL quantity
+  };
+  res.status(200).json(walletData);
+});
+
+/**
+ * @swagger
+ * /v1/preferences:
+ *  get:
+ *    summary: Get user preferences
+ *    tags:
+ *      - Preferences
+ *    responses:
+ *      200:
+ *        description: Preferences data
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                slippage:
+ *                  type: integer
+ *                priorityFee:
+ *                  type: string
+ *                customPriorityFee:
+ *                  type: number
+ *                customSlippage:
+ *                  type: number
+ *                preferredCurrency:
+ *                  type: string
+ *                quickBuySol:
+ *                  type: array
+ *                  items:
+ *                    type: integer
+ *                quickBuyUsd:
+ *                  type: array
+ *                  items:
+ *                    type: integer
+ *                code:
+ *                  type: integer
+ */
+app.get("/v1/preferences", (req, res) => {
+  const preferencesData = generateRandomPreferences(); // Generate the data
+  res.status(200).json(preferencesData);
 });
 
 // Error handling middleware

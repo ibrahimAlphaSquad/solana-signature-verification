@@ -87,6 +87,15 @@ let tokenNames = [
   "Star Atlas",
 ];
 
+// Array to hold URIs
+const carry = [
+  "https://gateway.irys.xyz/ARwo9mOkqe8gQxZwUhcT5Q0qSC08wdN6XjeWP54l3bo",
+  "https://ipfs.io/ipfs/QmbMf3yU4nJdaVabMt7iJu2UjbkzJ4pEwzyTf8eQ13aD3B",
+  "https://arweave.net/h45yfCLzjUIUDJSUFk9udv-V3TNvAwqkj2AuwV77lLU",
+  "https://cf-ipfs.com/ipfs/QmcPquG2qLR1DGUmXZZ5ubva5jffNEXZzqQ6bdKNgkdfTa",
+  "https://bafkreiexnj5beawk2qmqcavuekrbpvemhngytjcuerol5venjtrrsx4lh4.ipfs.w3s.link",
+];
+
 /**
  * Generate a random integer ID
  * @returns {number} - A unique identifier for the token release event
@@ -198,6 +207,11 @@ function generateRandomLiquidityInfo() {
   return (Math.random() * 1e9).toExponential(1);
 }
 
+// Function to get a random URI from the carry array
+function getRandomUri() {
+  return carry[Math.floor(Math.random() * carry.length)];
+}
+
 // /**
 //  * Generate a complete random data object for a new token release
 //  * @returns {object} - Random data object for the token release
@@ -242,7 +256,7 @@ function generateRandomTokenData() {
     lpSolAmount: generateRandomSolAmount(), // Previously sol_amount
     openTime: Math.floor(Date.now() / 1000), // Epoch time in seconds
     supply: 1000000000, // Fixed supply for the token
-    uri: "https://bafkreiexnj5beawk2qmqcavuekrbpvemhngytjcuerol5venjtrrsx4lh4.ipfs.w3s.link", // Placeholder URI
+    uri: getRandomUri(), // Random URI from the carry array
   };
 }
 
@@ -259,8 +273,54 @@ function generateRandomDataForRaydiumPools(count = 20) {
   return randomDataArray;
 }
 
+function generateRandomHolding() {
+  return {
+    tokenMintAddress: generateRandomMintAddress(),
+    poolAddress: generateRandomWalletAddress(),
+    tokenName: generateRandomTokenName(),
+    tokenSymbol: generateRandomTokenSymbol(),
+    tokenQuantity: parseFloat((Math.random() * 100000).toFixed(6)), // Random token quantity
+    uri: getRandomUri(), // Random URI from the carry array
+    createdAt: new Date().toISOString().replace("T", " ").replace("Z", ""),
+  };
+}
+
+function generateRandomHoldings(count = 4) {
+  const holdings = [];
+  for (let i = 0; i < count; i++) {
+    holdings.push(generateRandomHolding());
+  }
+  return {
+    code: 0,
+    holdings,
+  };
+}
+
+function generateRandomSolanaQuantity() {
+  return parseFloat(Math.random() * 0.1);
+}
+
+function generateRandomPreferences() {
+  const randomIntArray = (length, max) =>
+    Array.from({ length }, () => Math.floor(Math.random() * max));
+
+  return {
+    slippage: Math.floor(Math.random() * 100), // Random slippage between 0 and 99
+    priorityFee: ["low", "medium", "high"][Math.floor(Math.random() * 3)], // Random priority fee
+    customPriorityFee: Math.floor(Math.random() * 100), // Random custom priority fee
+    customSlippage: Math.floor(Math.random() * 100), // Random custom slippage
+    preferredCurrency: ["sol", "usd"][Math.floor(Math.random() * 2)], // Random preferred currency ("sol" or "usd")
+    quickBuySol: randomIntArray(4, 100), // Random SOL quick buy options
+    quickBuyUsd: randomIntArray(4, 150), // Random USD quick buy options
+    code: 0, // Success code
+  };
+}
+
 module.exports = {
   generateRandomTokenData,
   generateRandomId,
   generateRandomDataForRaydiumPools,
+  generateRandomHoldings,
+  generateRandomSolanaQuantity,
+  generateRandomPreferences, // Export the new function
 };
