@@ -27,6 +27,9 @@ app.use(
 
 app.use(bodyParser.json());
 
+// In-memory store for pending transactions
+const pendingTransactions = new Map();
+
 // Swagger configuration
 const swaggerOptions = {
   swaggerDefinition: {
@@ -313,34 +316,9 @@ function generatePseudoRandomSSEEvent(seed) {
   return sse_event;
 }
 
-// // me and my ints
-// for (let i = 0; i < 10; ++i) {
-//   const e = generatePseudoRandomSSEEvent(randomBetween(0, signatures.length - 1));
-//   console.log(e);
-// }
-
 /*
 
-Request params 
-{
-  "poolAddress": "jlasdjfklasjdfaksdjfkasjdf",
-  "tokenAddress": "jlkjasfgkjsdflkgjdlskfgdff",
-  "currency": "USD",                            // USD or SOL
-  "amount": 0.001,                              // amount in Dollars or Solana
-  "priority": "custom/low/medium/high ...", 
-  "priorityFee": 0.002,                         // Sol trx custom priority fees
-  "slippage": 10,                               // Considered in percentage
-  "provider": "raydium"                         // either raydium or pumpfun
-}
-
-Response
-{
-  "code": "0 or non zero for errors",             // 0 for success
-  "transactionSignature": "jlkjasfgkjsdflkg",     // Trx id received from chain
-  "error": "any possible error message if code not 0"
-}
 */
-
 app.post("/v1/swap/buy", (req, res) => {
   const {
     poolAddress,
@@ -353,12 +331,61 @@ app.post("/v1/swap/buy", (req, res) => {
     provider,
   } = req.body;
 
+  // Validate required fields
+  if (!poolAddress || !tokenAddress || !currency || !amount || !provider) {
+    return res.status(400).json({
+      code: 1,
+      error: "Missing required fields",
+    });
+  }
+
+  // Validate currency
+  if (currency !== "USD" && currency !== "SOL") {
+    return res.status(400).json({
+      code: 2,
+      error: "Invalid currency. Must be 'USD' or 'SOL'",
+    });
+  }
+
+  // Validate amount
+  if (typeof amount !== "number" || amount <= 0) {
+    return res.status(400).json({
+      code: 3,
+      error: "Invalid amount. Must be a positive number",
+    });
+  }
+
+  // Validate provider
+  if (provider !== "raydium" && provider !== "pumpfun") {
+    return res.status(400).json({
+      code: 4,
+      error: "Invalid provider. Must be 'raydium' or 'pumpfun'",
+    });
+  }
+
   const i = randomBetween(0, signatures.length - 1);
+
+  // Generate a unique transaction signature
+  const transactionSignature = randomSignature(i);
+
+  // Store the transaction details
+  pendingTransactions.set(i, {
+    poolAddress,
+    tokenAddress,
+    currency,
+    amount,
+    priority,
+    priorityFee,
+    slippage,
+    provider,
+    status: "pending",
+  });
+
   res.json({
     code: 0,
-    transactionSignature: randomSignature(i),
+    transactionSignature,
     error: "",
-    seed: i, // this is the key for this to be deterministic
+    seed: i,
   });
 });
 
@@ -377,8 +404,6 @@ app.post("/v1/swap/buy", (req, res) => {
  */
 
 app.get("/v1/events/subscribe", async (req, res) => {
-  const seed = req.get("X-seed"); 
-  console.log("THE F'ing seed => ", seed);
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache, no-transform");
   res.setHeader("Connection", "keep-alive");
@@ -386,10 +411,29 @@ app.get("/v1/events/subscribe", async (req, res) => {
 
   await new Promise((r) => setTimeout(r, 5000));
   const sendEvent = (data) => {
-    res.write(`data: ${data}\n\n`);
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
 
-  sendEvent(JSON.stringify(generatePseudoRandomSSEEvent(seed)));
+  // Function to process pending transactions
+  const processPendingTransactions = () => {
+    for (const [seed, transaction] of pendingTransactions.entries()) {
+      if (transaction.status === "pending") {
+        const eventData = generatePseudoRandomSSEEvent(seed);
+        sendEvent(eventData);
+
+        // Update transaction status
+        transaction.status = eventData.status;
+        if (transaction.status !== "pending") {
+          pendingTransactions.delete(seed);
+        }
+      }
+    }
+  };
+
+  processPendingTransactions();
+
+  // Set up interval for continuous processing
+  const interval = setInterval(processPendingTransactions, 5000);
 
   // Handle client connection loss
   req.on("close", () => {
