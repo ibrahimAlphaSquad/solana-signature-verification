@@ -257,6 +257,111 @@ app.get("/v1/pools/subscribe", (req, res) => {
   });
 });
 
+const signatures = [
+  "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",
+];
+
+function randomSignature(index) {
+  return signatures[index];
+}
+
+function randomBetween(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generatePseudoRandomSSEEvent(seed) {
+  const d = randomBetween(10, 100);
+  const before = randomBetween(1000, 10000);
+
+  const sse_event = {
+    signature: randomSignature(seed),
+    tokenDelta: d,
+    fee: randomBetween(105003, 105003 * 4),
+    tokenAmount: d + before,
+    solAmount: randomBetween(0.013857887, 0.013857887 * 10),
+    status: randomBetween(0, 1) == 1 ? "success" : "failed",
+  };
+
+  return sse_event;
+}
+
+// // me and my ints
+// for (let i = 0; i < 10; ++i) {
+//   const e = generatePseudoRandomSSEEvent(randomBetween(0, signatures.length - 1));
+//   console.log(e);
+// }
+
+/*
+
+Request params 
+{
+  "poolAddress": "jlasdjfklasjdfaksdjfkasjdf",
+  "tokenAddress": "jlkjasfgkjsdflkgjdlskfgdff",
+  "currency": "USD",                            // USD or SOL
+  "amount": 0.001,                              // amount in Dollars or Solana
+  "priority": "custom/low/medium/high ...", 
+  "priorityFee": 0.002,                         // Sol trx custom priority fees
+  "slippage": 10,                               // Considered in percentage
+  "provider": "raydium"                         // either raydium or pumpfun
+}
+
+Response
+{
+  "code": "0 or non zero for errors",             // 0 for success
+  "transactionSignature": "jlkjasfgkjsdflkg",     // Trx id received from chain
+  "error": "any possible error message if code not 0"
+}
+*/
+
+app.post("/v1/swap/buy", (req, res) => {
+  const {
+    poolAddress,
+    tokenAddress,
+    currency,
+    amount,
+    priority,
+    priorityFee,
+    slippage,
+    provider,
+  } = req.body;
+
+  const i = randomBetween(0, signatures.length - 1);
+  res.json({
+    code: 0,
+    transactionSignature: randomSignature(i),
+    error: "",
+    seed: i, // this is the key for this to be deterministic
+  });
+});
+
 /**
  * @swagger
  * /v1/events/subscribe:
@@ -270,23 +375,21 @@ app.get("/v1/pools/subscribe", (req, res) => {
  *      500:
  *        description: Internal Server Error
  */
-app.get("/v1/events/subscribe", (req, res) => {
+
+app.get("/v1/events/subscribe", async (req, res) => {
+  const seed = req.get("X-seed"); 
+  console.log("THE F'ing seed => ", seed);
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache, no-transform");
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders(); // flush the headers to establish SSE connection immediately
 
+  await new Promise((r) => setTimeout(r, 5000));
   const sendEvent = (data) => {
-    res.write(`id: ${generateRandomId()}\n`);
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
+    res.write(`data: ${data}\n\n`);
   };
 
-  // Generate a random timeout between 1000ms (1 second) and 10000ms (10 seconds)
-  const randomTimeout = Math.floor(Math.random() * (10000 - 1000 + 1)) + 1000;
-
-  const interval = setInterval(() => {
-    sendEvent(generateRandomTokenData());
-  }, randomTimeout);
+  sendEvent(JSON.stringify(generatePseudoRandomSSEEvent(seed)));
 
   // Handle client connection loss
   req.on("close", () => {
@@ -498,6 +601,7 @@ app.get("/v1/preferences", (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
+  console.log({ err });
   res.status(500).send("Something broke!");
 });
 
