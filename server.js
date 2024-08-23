@@ -214,7 +214,7 @@ app.get("/get_verify_number", (req, res) => {
 
 /**
  * @swagger
- * /pools/subscribe:
+ * /v1/pools/subscribe:
  *  get:
  *    summary: Subscribe to event stream
  *    tags:
@@ -226,6 +226,51 @@ app.get("/get_verify_number", (req, res) => {
  *        description: Internal Server Error
  */
 app.get("/v1/pools/subscribe", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders(); // flush the headers to establish SSE connection immediately
+
+  const sendEvent = (data) => {
+    res.write(`id: ${generateRandomId()}\n`);
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  // Generate a random timeout between 1000ms (1 second) and 10000ms (10 seconds)
+  const randomTimeout = Math.floor(Math.random() * (10000 - 1000 + 1)) + 1000;
+
+  const interval = setInterval(() => {
+    sendEvent(generateRandomTokenData());
+  }, randomTimeout);
+
+  // Handle client connection loss
+  req.on("close", () => {
+    clearInterval(interval);
+    res.end(); // ensure the response is properly closed
+  });
+
+  // Handle potential errors in streaming
+  req.on("error", (err) => {
+    console.error("SSE connection error:", err);
+    clearInterval(interval);
+    res.end();
+  });
+});
+
+/**
+ * @swagger
+ * /v1/events/subscribe:
+ *  get:
+ *    summary: Subscribe to event stream
+ *    tags:
+ *      - Event Stream
+ *    responses:
+ *      200:
+ *        description: Event stream started
+ *      500:
+ *        description: Internal Server Error
+ */
+app.get("/v1/events/subscribe", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache, no-transform");
   res.setHeader("Connection", "keep-alive");
