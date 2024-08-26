@@ -407,44 +407,48 @@ app.get("/v1/events/subscribe", async (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache, no-transform");
   res.setHeader("Connection", "keep-alive");
-  res.flushHeaders(); // flush the headers to establish SSE connection immediately
+  res.flushHeaders();
 
-  await new Promise((r) => setTimeout(r, 5000));
   const sendEvent = (data) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
 
-  // Function to process pending transactions
   const processPendingTransactions = () => {
-    for (const [seed, transaction] of pendingTransactions.entries()) {
-      if (transaction.status === "pending") {
-        const eventData = generatePseudoRandomSSEEvent(seed);
-        sendEvent(eventData);
+    if (pendingTransactions.size > 0) {
+      for (const [seed, transaction] of pendingTransactions.entries()) {
+        if (transaction.status === "pending") {
+          const eventData = generatePseudoRandomSSEEvent(seed);
+          sendEvent(eventData);
 
-        // Update transaction status
-        transaction.status = eventData.status;
-        if (transaction.status !== "pending") {
-          pendingTransactions.delete(seed);
+          transaction.status = eventData.status;
+          if (transaction.status !== "pending") {
+            pendingTransactions.delete(seed);
+          }
         }
       }
     }
   };
 
-  processPendingTransactions();
+  const randomDelay = () =>
+    Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000;
 
-  // Set up interval for continuous processing
-  const interval = setInterval(processPendingTransactions, 5000);
+  const scheduleNextProcess = () => {
+    setTimeout(() => {
+      processPendingTransactions();
+      if (pendingTransactions.size > 0) {
+        scheduleNextProcess();
+      }
+    }, randomDelay());
+  };
 
-  // Handle client connection loss
+  scheduleNextProcess();
+
   req.on("close", () => {
-    clearInterval(interval);
-    res.end(); // ensure the response is properly closed
+    res.end();
   });
 
-  // Handle potential errors in streaming
   req.on("error", (err) => {
     console.error("SSE connection error:", err);
-    clearInterval(interval);
     res.end();
   });
 });
@@ -526,7 +530,12 @@ app.get("/v1/pools/raydium/past/72", (req, res) => {
       randomData.push(generateRandomTokenData());
     }
 
-    res.status(200).send(randomData.slice(offset, offset + limit));
+    let responseData = {
+      code: 0,
+      pools: randomData.slice(offset, offset + limit),
+    };
+
+    res.status(200).send(responseData);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
