@@ -212,6 +212,32 @@ function getRandomUri() {
   return carry[Math.floor(Math.random() * carry.length)];
 }
 
+/**
+ * Generate a complete random data object for a new token release
+ * @returns {object} - Random data object for the token release
+ */
+function generateRandomTokenData() {
+  return {
+    createdAt: generateRandomTimestamp(), // Updated key
+    openTime: generateRandomUnixTimestamp(), // Updated key and function
+    poolCreator: generateRandomWalletAddress(), // Updated key
+    liquidityPoolAddress: generateRandomWalletAddress(), // Updated key
+    tokenMintOne: generateRandomMintAddress(), // Updated key
+    tokenMintTwo: "So11111111111111111111111111111111111111112", // Typically SOL, updated key
+    tokenMintOneAmount: generateRandomTokenAmount(), // Updated key
+    solAmount: generateRandomSolAmount(), // Updated key
+    tokenMintOneName: generateRandomTokenName(), // Updated key
+    tokenMintTwoName: "Solana", // Updated key
+    tokenMintOneSymbol: generateRandomTokenSymbol(), // Updated key
+    tokenMintTwoSymbol: "SOL", // Updated key
+    poolBurntPercentage: generateRandomBurntPercentage(), // Updated key
+    supply: generateRandomTokenAmount(), // Added key
+    uri: getRandomUri(), // Random URI from the carry array,
+    lpProvider: "Raydium", // Updated key
+    tokenQuantity: generateRandomSolAmount(), // Added key
+  };
+}
+
 // /**
 //  * Generate a complete random data object for a new token release
 //  * @returns {object} - Random data object for the token release
@@ -235,7 +261,7 @@ function getRandomUri() {
 //     pool_burnt_percentage: generateRandomBurntPercentage(),
 //     liquidity_info: generateRandomLiquidityInfo(),
 //     lp_provider: "Raydium",
-//     uri: "https://arweave.net/o_JOBtY4n0bPm8-FL6Hq63IJ24T-QIk0-GbKy9YSPDU",
+//     uri: getRandomUri(), // Random URI from the carry array,
 //   };
 // }
 
@@ -243,22 +269,22 @@ function getRandomUri() {
  * Generate a complete random data object for a new token release
  * @returns {object} - Random data object for the token release
  */
-function generateRandomTokenData() {
-  return {
-    tokenAddress: generateRandomMintAddress(), // Previously token_mint_one
-    tokenPriceSol: parseFloat((Math.random() * 1e-5).toFixed(12)), // Random SOL price
-    symbol: generateRandomTokenSymbol(),
-    lpTokenAmount: generateRandomTokenAmount(), // Previously token_mint_one_amount
-    creator: generateRandomWalletAddress(), // Previously pool_creator
-    tokenPriceUsd: parseFloat((Math.random() * 0.001).toFixed(12)), // Random USD price
-    name: generateRandomTokenName(),
-    poolAddress: generateRandomWalletAddress(), // Previously liquidity_pool_address
-    lpSolAmount: generateRandomSolAmount(), // Previously sol_amount
-    openTime: Math.floor(Date.now() / 1000), // Epoch time in seconds
-    supply: 1000000000, // Fixed supply for the token
-    uri: getRandomUri(), // Random URI from the carry array
-  };
-}
+// function generateRandomTokenData() {
+//   return {
+//     tokenAddress: generateRandomMintAddress(), // Previously token_mint_one
+//     tokenPriceSol: parseFloat((Math.random() * 1e-5).toFixed(12)), // Random SOL price
+//     symbol: generateRandomTokenSymbol(),
+//     lpTokenAmount: generateRandomTokenAmount(), // Previously token_mint_one_amount
+//     creator: generateRandomWalletAddress(), // Previously pool_creator
+//     tokenPriceUsd: parseFloat((Math.random() * 0.001).toFixed(12)), // Random USD price
+//     name: generateRandomTokenName(),
+//     poolAddress: generateRandomWalletAddress(), // Previously liquidity_pool_address
+//     lpSolAmount: generateRandomSolAmount(), // Previously sol_amount
+//     openTime: Math.floor(Date.now() / 1000), // Epoch time in seconds
+//     supply: 1000000000, // Fixed supply for the token
+//     uri: getRandomUri(), // Random URI from the carry array
+//   };
+// }
 
 /**
  * Generate random data for /pools/raydium/past/72?offset=0&limit=20
