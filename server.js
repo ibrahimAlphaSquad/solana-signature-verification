@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
+const crypto = require("crypto");
 const { verifySignature } = require("./verifySignature");
 const verifyToken = require("./verifyToken");
 const generateVerificationNumber = require("./verifyNumber");
@@ -310,7 +311,8 @@ function generatePseudoRandomSSEEvent(seed) {
     fee: randomBetween(105003, 105003 * 4),
     tokenAmount: d + before,
     solAmount: randomBetween(0.013857887, 0.013857887 * 10),
-    status: randomBetween(0, 1) == 1 ? "success" : "failed",
+    // status: randomBetween(0, 1) == 1 ? "success" : "failed",
+    status: "success",
   };
 
   return sse_event;
@@ -381,6 +383,9 @@ app.post("/v1/swap/buy", (req, res) => {
     status: "pending",
   });
 
+  console.log("Transaction Signature:", transactionSignature);
+  console.log("Transaction Details:", pendingTransactions.get(i));
+
   res.json({
     code: 0,
     transactionSignature,
@@ -402,55 +407,57 @@ app.post("/v1/swap/buy", (req, res) => {
  *      500:
  *        description: Internal Server Error
  */
-
 app.get("/v1/events/subscribe", async (req, res) => {
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache, no-transform");
-  res.setHeader("Connection", "keep-alive");
-  res.flushHeaders();
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no", // Disable Nginx buffering
+  });
 
   const sendEvent = (data) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
 
-  const processPendingTransactions = () => {
-    if (pendingTransactions.size > 0) {
-      for (const [seed, transaction] of pendingTransactions.entries()) {
-        if (transaction.status === "pending") {
-          const eventData = generatePseudoRandomSSEEvent(seed);
-          sendEvent(eventData);
+  const keepAlive = () => {
+    res.write('data: "Fuck you bitch"\n\n');
+  };
 
-          transaction.status = eventData.status;
-          if (transaction.status !== "pending") {
-            pendingTransactions.delete(seed);
-          }
+  // Improved data sending logic
+  const processPendingTransactions = () => {
+    for (const [seed, transaction] of pendingTransactions.entries()) {
+      if (transaction.status === "pending") {
+        const eventData = generatePseudoRandomSSEEvent(seed);
+        sendEvent(eventData);
+
+        transaction.status = eventData.status;
+        if (transaction.status !== "pending") {
+          pendingTransactions.delete(seed);
         }
       }
     }
   };
 
-  const randomDelay = () =>
-    Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000;
+  const keepAliveInterval = setInterval(keepAlive, 10000);
 
-  const scheduleNextProcess = () => {
-    setTimeout(() => {
-      processPendingTransactions();
-      if (pendingTransactions.size > 0) {
-        scheduleNextProcess();
-      }
-    }, randomDelay());
-  };
-
-  scheduleNextProcess();
+  // Process pending transactions every 5 seconds
+  const transactionInterval = setInterval(processPendingTransactions, 3000);
 
   req.on("close", () => {
+    clearInterval(keepAliveInterval);
+    clearInterval(transactionInterval);
     res.end();
   });
 
   req.on("error", (err) => {
     console.error("SSE connection error:", err);
+    clearInterval(keepAliveInterval);
+    clearInterval(transactionInterval);
     res.end();
   });
+
+  // Set a longer timeout for the connection (e.g., 2 hours)
+  req.setTimeout(2 * 60 * 60 * 1000);
 });
 
 /**
@@ -650,6 +657,121 @@ app.get("/v1/wallet/sync", (req, res) => {
 app.get("/v1/preferences", (req, res) => {
   const preferencesData = generateRandomPreferences(); // Generate the data
   res.status(200).json(preferencesData);
+});
+
+// GT User Verification Endpoint
+/**
+ * @swagger
+ * /gt-user-verify:
+ *  post:
+ *    summary: Verify GT user authorization data
+ *    tags:
+ *      - GT User Verification
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            required:
+ *              - id
+ *              - first_name
+ *              - last_name
+ *              - username
+ *              - photo_url
+ *              - auth_date
+ *              - hash
+ *            properties:
+ *              id:
+ *                type: string
+ *              first_name:
+ *                type: string
+ *              last_name:
+ *                type: string
+ *              username:
+ *                type: string
+ *              photo_url:
+ *                type: string
+ *              auth_date:
+ *                type: string
+ *              hash:
+ *                type: string
+ *    responses:
+ *      200:
+ *        description: Verification result
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                isValid:
+ *                  type: boolean
+ *                message:
+ *                  type: string
+ *      400:
+ *        description: Bad Request
+ */
+app.post("/gt-user-verify", (req, res) => {
+  const { id, first_name, last_name, username, photo_url, auth_date, hash } =
+    req.body;
+
+  // Check if all required fields are present
+  if (
+    !id ||
+    !first_name ||
+    !last_name ||
+    !username ||
+    !photo_url ||
+    !auth_date ||
+    !hash
+  ) {
+    return res
+      .status(400)
+      .json({ isValid: false, message: "Missing required fields" });
+  }
+
+  // Create the data_check_string as per the documentation
+  const fields = { auth_date, first_name, id, last_name, photo_url, username };
+  const data_check_string = Object.keys(fields)
+    .sort()
+    .map((key) => `${key}=${fields[key]}`) // Using the actual value of each key
+    .join("\n");
+
+  // Replace '<bot_token>' with the actual bot token
+  const bot_token = "1665544069:AAEtaO934faKBKXUg5QmYE2RSu8sK2a-_0I";
+  const secret_key = crypto.createHash("sha256").update(bot_token).digest();
+
+  // Generate HMAC SHA256 of the data_check_string
+  const computed_hash = crypto
+    .createHmac("sha256", secret_key)
+    .update(data_check_string)
+    .digest("hex");
+
+  // Log information to troubleshoot the difference
+  console.log({
+    computed_hash,
+    provided_hash: hash,
+    data_check_string,
+    secret_key: secret_key.toString("hex"),
+  });
+
+  // Verify if the computed hash matches the received hash
+  if (computed_hash === hash) {
+    // Check if the auth_date is not older than 24 hours
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (currentTime - parseInt(auth_date) > 86400) {
+      return res
+        .status(400)
+        .json({ isValid: false, message: "Authorization data is outdated" });
+    }
+    return res
+      .status(200)
+      .json({ isValid: true, message: "User verification successful" });
+  } else {
+    return res
+      .status(400)
+      .json({ isValid: false, message: "User verification failed" });
+  }
 });
 
 // Error handling middleware

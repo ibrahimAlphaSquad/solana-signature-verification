@@ -219,7 +219,7 @@ function getRandomUri() {
 function generateRandomTokenData() {
   return {
     createdAt: generateRandomTimestamp(), // Updated key
-    openTime: generateRandomUnixTimestamp(), // Updated key and function
+    openTime: generateRandomTimestamp(), // Updated key and function
     poolCreator: generateRandomWalletAddress(), // Updated key
     liquidityPoolAddress: generateRandomWalletAddress(), // Updated key
     tokenMintOne: generateRandomMintAddress(), // Updated key
