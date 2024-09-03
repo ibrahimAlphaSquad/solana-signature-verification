@@ -14,6 +14,7 @@ const {
   generateRandomSolanaQuantity,
   generateRandomPreferences,
 } = require("./randomDataGenerator");
+const generateToken = require("./generateToken");
 
 const app = express();
 
@@ -771,6 +772,85 @@ app.post("/gt-user-verify", (req, res) => {
     return res
       .status(400)
       .json({ isValid: false, message: "User verification failed" });
+  }
+});
+
+/**
+ * @swagger
+ * /generate-token:
+ *  post:
+ *    summary: Generate JWT for a user
+ *    tags:
+ *      - JWT
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            required:
+ *              - telegramUserId
+ *              - username
+ *            properties:
+ *              telegramUserId:
+ *                type: string
+ *              username:
+ *                type: string
+ *    responses:
+ *      200:
+ *        description: JWT token generated
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                token:
+ *                  type: string
+ *      400:
+ *        description: Bad Request
+ */
+app.post("/v1/user-auth", (req, res) => {
+  try {
+    const { telegramUserId, username } = req.body;
+
+    console.log({ telegramUserId, username });
+
+    // Validate required fields
+    if (!telegramUserId || !username) {
+      return res
+        .status(400)
+        .json({ message: "telegramUserId and username are required" });
+    }
+
+    // Create the payload
+    const payload = {
+      telegramUserId,
+      username,
+    };
+
+    // Generate the JWT (assuming generateToken is a valid function)
+    const jwtToken = generateToken(payload);
+
+    if (!jwtToken) {
+      throw new Error("Failed to generate token"); // Custom error if token generation fails
+    }
+
+    // Return the generated token and validation status
+    res.json({ jwtToken, isValid: true });
+  } catch (error) {
+    // Log the error for debugging purposes
+    console.error("Error in /user-auth:", error);
+
+    // Send appropriate error response
+    if (error.message.includes("Failed to generate token")) {
+      return res
+        .status(500)
+        .json({ message: "Internal Server Error: Token generation failed." });
+    }
+
+    res.status(500).json({
+      message: "An unexpected error occurred. Please try again later.",
+    });
   }
 });
 
